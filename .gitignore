@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+ENV/
+env/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+dist/
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Generated files
+backend/assets/uwu_round_*.wav
+backend/assets/uwu_base.wav
+backend/assets/uwu_template.npy
+
+# Environment variables
+.env
+.env.local
+
+# Archived / unused files
+zz_unused/
+
+# Playwright test infra
+playwright-test/node_modules/
+playwright-test/screenshots/
+
+# Backend test artifacts
+backend/tests/
