@@ -5,7 +5,7 @@ Configuration and tuning parameters for FIGHT UWU BIRD
 CONFIG = {
     # Pitch shift per round (in semitones)
     # Start low, gradually increase difficulty
-    "round_shifts": [-10, -6, -3],
+    "round_shifts": [-9, -6, -3],
 
     # Base pitch of the original bird call (Hz) — set after loading asset
     # Will be computed at startup from the actual sample
