@@ -8,17 +8,23 @@ export function useAudioRecorder() {
   const [isRecording, setIsRecording] = useState(false);
   const audioContextRef = useRef(null);
 
-  async function startRecording(durationMs = 3500) {
+  async function startRecording(durationMs = 3500, existingStream = null) {
     try {
-      console.log('[MIC] Requesting getUserMedia...');
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          sampleRate: 44100,
-        },
-      });
-      console.log('[MIC] getUserMedia granted, stream active:', stream.active);
+      let stream;
+      if (existingStream) {
+        stream = existingStream;
+        console.log('[MIC] Reusing existing stream');
+      } else {
+        console.log('[MIC] Requesting getUserMedia...');
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            sampleRate: 44100,
+          },
+        });
+        console.log('[MIC] getUserMedia granted, stream active:', stream.active);
+      }
 
       const audioContext = new (window.AudioContext || window.webkitAudioContext)({
         sampleRate: 44100,
@@ -48,7 +54,7 @@ export function useAudioRecorder() {
           console.log('[MIC] Recording finished, total chunks:', chunks.length);
           processor.disconnect();
           source.disconnect();
-          stream.getTracks().forEach((t) => t.stop());
+          if (!existingStream) stream.getTracks().forEach((t) => t.stop());
           audioContext.close();
           setIsRecording(false);
 

@@ -13,6 +13,7 @@ import ContentFrame from './ContentFrame';
  * Main battle scene component - orchestrates the entire game loop
  */
 export default function BattleScene({
+  micStream = null,
   playerName = 'YOU',
   playerLevel = 6,
   opponentName = 'UWU BIRD',
@@ -111,13 +112,21 @@ export default function BattleScene({
         setBirdAnimState('idle');
         await delay(500);
 
-        // Player turn
+        // Player turn — countdown then record
         setPhase('player-turn');
         setContentMode('text');
         setDialogue('YOUR TURN!');
+        await delay(800);
+        setDialogue('3...');
+        await delay(500);
+        setDialogue('2...');
+        await delay(500);
+        setDialogue('1...');
+        await delay(500);
+        setDialogue('GO!');
         setPlayerAnimState('vibrating');
 
-        const playerAudio = await startRecording(3500);
+        const playerAudio = await startRecording(3500, micStream);
         setPlayerAnimState('idle');
 
         // Analysis

@@ -223,10 +223,8 @@
 
 .typewriter-text {
   min-height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
+  display: block;
+  text-align: left;
 }
 
 .typewriter-text .cursor {

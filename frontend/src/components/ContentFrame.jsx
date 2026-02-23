@@ -26,7 +26,7 @@ export default function ContentFrame({
     <div className="framed neutral content-frame">
       {mode === 'text' ? (
         <div className="typewriter-text">
-          <span>{displayed}</span>
+          <span style={{ display: 'block' }}>{displayed}</span>
           {done && <span className="cursor">▼</span>}
         </div>
       ) : (
