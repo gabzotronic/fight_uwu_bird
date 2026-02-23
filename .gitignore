@@ -31,8 +31,6 @@ env/
 # Jupyter Notebook
 .ipynb_checkpoints
 
-# pyenv
-.python-version
 
 # Node
 node_modules/
@@ -54,6 +52,9 @@ dist/
 backend/assets/uwu_round_*.wav
 backend/assets/uwu_base.wav
 backend/assets/uwu_template.npy
+
+# Claude Code project instructions (local only)
+CLAUDE.md
 
 # Environment variables
 .env
