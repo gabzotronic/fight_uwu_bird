@@ -8,11 +8,20 @@ function App() {
   const [gameStarted, setGameStarted] = useState(false);
   const [gameResult, setGameResult] = useState(null);
   const [gameScore, setGameScore] = useState(0);
+  const [micState, setMicState] = useState('idle'); // 'idle' | 'requesting' | 'denied'
 
-  const handleFightClick = () => {
-    setGameStarted(true);
+  const handleFightClick = async () => {
     setGameResult(null);
     setGameScore(0);
+    setMicState('requesting');
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach((t) => t.stop());
+      setMicState('idle');
+      setGameStarted(true);
+    } catch {
+      setMicState('denied');
+    }
   };
 
   const handleGameEnd = (result, score) => {
@@ -59,7 +68,7 @@ function App() {
   return (
     <div className="app idle-state">
       <div className="container">
-        <FightButton onClick={handleFightClick} />
+        <FightButton onClick={handleFightClick} micState={micState} />
       </div>
     </div>
   );
