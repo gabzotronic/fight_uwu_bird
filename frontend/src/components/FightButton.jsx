@@ -30,6 +30,10 @@ export default function FightButton({ onClick, gameResult, micState = 'idle' }) 
           </p>
         </>
       )}
+      <footer className="fight-footer">
+        <p>Made in 🇸🇬 with ❤️</p>
+        <p><a href="https://www.reddit.com/r/askSingapore/comments/1p72dng/how_do_you_deal_with_the_uwu_bird_right_outside/" target="_blank" rel="noopener noreferrer">Reddit inspiration</a></p>
+      </footer>
     </div>
   );
 }

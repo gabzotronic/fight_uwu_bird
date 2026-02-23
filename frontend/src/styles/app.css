@@ -41,6 +41,22 @@ body {
   text-align: center;
 }
 
+.fight-footer {
+  margin-top: 32px;
+  font-size: 0.56rem;
+  color: #bbb;
+  line-height: 1.6;
+}
+
+.fight-footer a {
+  color: #bbb;
+  text-decoration: underline;
+}
+
+.fight-footer a:hover {
+  color: #aaa;
+}
+
 .title {
   font-size: 3.5rem;
   font-weight: 900;
