@@ -4,6 +4,7 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { startGame, getBirdCall, analyzeAudio } from '../api/gameApi';
+import { trackEvent } from '../analytics';
 
 export const GameState = {
   IDLE: 'idle',
@@ -37,6 +38,7 @@ export function useGameSession() {
       setRound(data.round);
       setMessage(data.message);
       setState(GameState.BIRD_CALLING);
+      trackEvent('game_start');
       return data;
     } catch (err) {
       setError(err.message);
@@ -70,7 +72,17 @@ export function useGameSession() {
         setLastAnalysis(analysis);
         setMessage(analysis.message);
 
+        trackEvent('round_attempt', {
+          round: roundRef.current,
+          passed: analysis.passed,
+          performance_score: analysis.performance_score,
+        });
+
         if (analysis.game_over) {
+          trackEvent('game_over', {
+            result: analysis.result,
+            rounds_played: roundRef.current,
+          });
           if (analysis.result === 'win') {
             setState(GameState.WIN_SCREEN);
           } else {
