@@ -13,7 +13,7 @@ export default function ResultScreen({ result, score, message, onPlayAgain, anal
   const [copied, setCopied] = useState(false);
 
   const handleShare = async () => {
-    const url = `${API_BASE}/share?result=${result}&score=${score ?? 0}`;
+    const url = `https://fightuwubird.com/share?result=${result}&score=${score ?? 0}`;
     try {
       await navigator.clipboard.writeText(url);
     } catch {
