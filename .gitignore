@@ -60,6 +60,10 @@ CLAUDE.md
 .env
 .env.local
 
+# OG image generation tooling (local only)
+frontend/public/og-title-gen.html
+frontend/public/og-title.png
+
 # Archived / unused files
 zz_unused/
 
