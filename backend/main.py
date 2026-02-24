@@ -6,7 +6,7 @@ import os
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 import numpy as np
 from pathlib import Path
 
@@ -152,6 +152,41 @@ def startup():
 
 
 # --- Routes ---
+
+GAME_URL = "https://fightuwubird.com"
+IMAGE_URL = f"{GAME_URL}/share_image.png"
+
+
+@app.get("/share")
+def share_page(result: str = "win", score: int = 0):
+    result = result if result in ("win", "lose") else "win"
+    score = max(0, min(30000, score))
+
+    if result == "win":
+        title = "I defeated the UWU Bird! 🎤"
+    else:
+        title = "The UWU Bird destroyed me 😢"
+    desc = f"I scored {score:,} points! Can you beat me? → fightuwubird.com"
+    share_url = f"{GAME_URL}/share?result={result}&score={score}"
+
+    html = f"""<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta property="og:title" content="{title}" />
+  <meta property="og:description" content="{desc}" />
+  <meta property="og:image" content="{IMAGE_URL}" />
+  <meta property="og:url" content="{share_url}" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="{title}" />
+  <meta name="twitter:description" content="{desc}" />
+  <meta name="twitter:image" content="{IMAGE_URL}" />
+  <meta http-equiv="refresh" content="0; url={GAME_URL}" />
+</head>
+<body>Redirecting to Fight UWU Bird...</body>
+</html>"""
+    return HTMLResponse(html)
 
 
 @app.get("/api/health")

@@ -2,11 +2,32 @@
  * ResultScreen - Displays win/lose results
  */
 
+import { useState } from 'react';
 import PitchVisualizer from './PitchVisualizer';
 import PitchProgression from './PitchProgression';
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 export default function ResultScreen({ result, score, message, onPlayAgain, analysis }) {
   const isWin = result === 'win';
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = async () => {
+    const url = `${API_BASE}/share?result=${result}&score=${score ?? 0}`;
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      // Fallback for browsers without clipboard API
+      const input = document.createElement('input');
+      input.value = url;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand('copy');
+      document.body.removeChild(input);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div className={`result-screen ${isWin ? 'win' : 'lose'}`}>
@@ -56,6 +77,9 @@ export default function ResultScreen({ result, score, message, onPlayAgain, anal
 
         <button className="framed neutral play-again-button" onClick={onPlayAgain}>
           ▶ {isWin ? 'PLAY AGAIN' : 'TRY AGAIN'} ◀
+        </button>
+        <button className="framed neutral play-again-button" onClick={handleShare}>
+          {copied ? '✓ COPIED!' : '⬆ SHARE SCORE'}
         </button>
       </div>
     </div>
