@@ -243,9 +243,12 @@ async def analyze_player_audio(session_id: str, audio: UploadFile = File(...), i
         raise HTTPException(400, "Game already over")
 
     # Read and process audio
+    MAX_AUDIO_BYTES = 5 * 1024 * 1024  # 5 MB (a 3s mono WAV at 44100 Hz is ~265 KB)
     audio_bytes = await audio.read()
     if len(audio_bytes) < 1000:
         raise HTTPException(400, "Audio file too small")
+    if len(audio_bytes) > MAX_AUDIO_BYTES:
+        raise HTTPException(413, "Audio file too large")
 
     y = audio_processor.load_audio(audio_bytes)
     contour_data = audio_processor.extract_contour(y)
