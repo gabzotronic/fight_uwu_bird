@@ -15,7 +15,7 @@ CONFIG = {
     # Player must be at or above this pitch to pass
 
     # UWU Detection thresholds
-    "dtw_threshold": 8.0,            # DTW normalization ceiling (lower = stricter shape match)
+    "dtw_threshold": 10.0,            # DTW normalization ceiling (lower = stricter shape match)
     "min_voiced_ratio": 0.05,         # Minimum fraction of frames that must have detected pitch
     "pitch_tolerance": 8.0,          # Max semitones BELOW target to allow (0 = must be higher or equal)
 
