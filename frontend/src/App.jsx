@@ -10,6 +10,7 @@ function App() {
   const [gameScore, setGameScore] = useState(0);
   const [micState, setMicState] = useState('idle'); // 'idle' | 'requesting' | 'denied'
   const [micStream, setMicStream] = useState(null);
+  const [audioContext, setAudioContext] = useState(null);
 
   const handleFightClick = async () => {
     setGameResult(null);
@@ -23,13 +24,30 @@ function App() {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
-          noiseSuppression: true,
+          noiseSuppression: false,
           sampleRate: 44100,
         },
       });
+
+      // Create AudioContext during the user tap — iOS Safari requires this
+      const ctx = new (window.AudioContext || window.webkitAudioContext)({
+        sampleRate: 44100,
+      });
+      if (ctx.state === 'suspended') await ctx.resume();
+
+      // Pre-register the AudioWorklet module (if supported)
+      if (ctx.audioWorklet) {
+        try {
+          await ctx.audioWorklet.addModule('/recorder-worklet.js');
+        } catch (e) {
+          console.warn('[MIC] AudioWorklet registration failed, will use fallback:', e);
+        }
+      }
+
       clearTimeout(messageTimer);
       setMicState('idle');
       setMicStream(stream);
+      setAudioContext(ctx);
       setGameStarted(true);
     } catch {
       clearTimeout(messageTimer);
@@ -42,6 +60,10 @@ function App() {
       micStream.getTracks().forEach((t) => t.stop());
       setMicStream(null);
     }
+    if (audioContext) {
+      audioContext.close();
+      setAudioContext(null);
+    }
     setGameResult(result);
     setGameScore(score);
     setGameStarted(false);
@@ -53,6 +75,7 @@ function App() {
       <div className="app game-state">
         <BattleScene
             micStream={micStream}
+            audioContext={audioContext}
             onGameEnd={handleGameEnd}
             playerName="ANNOYED AUNTIE"
             playerLevel={6}

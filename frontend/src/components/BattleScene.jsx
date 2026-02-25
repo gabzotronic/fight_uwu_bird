@@ -14,6 +14,7 @@ import ContentFrame from './ContentFrame';
  */
 export default function BattleScene({
   micStream = null,
+  audioContext = null,
   playerName = 'YOU',
   playerLevel = 6,
   opponentName = 'UWU BIRD',
@@ -126,7 +127,7 @@ export default function BattleScene({
         setDialogue('GO!');
         setPlayerAnimState('vibrating');
 
-        const playerAudio = await startRecording(3500, micStream);
+        const playerAudio = await startRecording(3500, micStream, audioContext);
         setPlayerAnimState('idle');
 
         // Analysis

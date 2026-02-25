@@ -1,14 +1,17 @@
 /**
  * useAudioRecorder hook - captures mic audio and encodes as WAV
+ * Uses AudioWorkletNode where available, falls back to ScriptProcessorNode.
+ *
+ * Expects a shared AudioContext (created during a user gesture in App.jsx)
+ * so that iOS Safari doesn't block audio processing.
  */
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 
 export function useAudioRecorder() {
   const [isRecording, setIsRecording] = useState(false);
-  const audioContextRef = useRef(null);
 
-  async function startRecording(durationMs = 3500, existingStream = null) {
+  async function startRecording(durationMs = 3500, existingStream = null, sharedAudioContext = null) {
     try {
       let stream;
       if (existingStream) {
@@ -19,47 +22,75 @@ export function useAudioRecorder() {
         stream = await navigator.mediaDevices.getUserMedia({
           audio: {
             echoCancellation: true,
-            noiseSuppression: true,
+            noiseSuppression: false,
             sampleRate: 44100,
           },
         });
         console.log('[MIC] getUserMedia granted, stream active:', stream.active);
       }
 
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)({
-        sampleRate: 44100,
-      });
-      audioContextRef.current = audioContext;
-      console.log('[MIC] AudioContext created, state:', audioContext.state);
+      // Reuse the shared AudioContext (created during user tap) when available.
+      // Only create a new one as a last resort — iOS Safari will block it here.
+      let audioContext;
+      let ownsContext = false;
+      if (sharedAudioContext && sharedAudioContext.state !== 'closed') {
+        audioContext = sharedAudioContext;
+        console.log('[MIC] Reusing shared AudioContext, state:', audioContext.state);
+      } else {
+        console.warn('[MIC] No shared AudioContext, creating new one (may fail on iOS)');
+        audioContext = new (window.AudioContext || window.webkitAudioContext)({
+          sampleRate: 44100,
+        });
+        ownsContext = true;
+      }
+
+      // Safety net: resume if suspended (helps Android, may not help iOS without gesture)
+      if (audioContext.state === 'suspended') {
+        console.log('[MIC] AudioContext suspended, resuming...');
+        await audioContext.resume();
+        console.log('[MIC] AudioContext resumed, state:', audioContext.state);
+      }
 
       const source = audioContext.createMediaStreamSource(stream);
       const chunks = [];
-      const processor = audioContext.createScriptProcessor(4096, 1, 1);
 
-      processor.onaudioprocess = (e) => {
-        const data = e.inputBuffer.getChannelData(0);
-        chunks.push(new Float32Array(data));
-        if (chunks.length % 10 === 0) {
-          console.log('[MIC] Recorded', chunks.length, 'chunks');
-        }
-      };
+      // Try AudioWorklet first (module pre-registered in App.jsx), fall back to ScriptProcessor
+      let cleanup;
+      try {
+        const workletNode = new AudioWorkletNode(audioContext, 'recorder-processor');
+        workletNode.port.onmessage = (e) => {
+          chunks.push(e.data);
+          if (chunks.length % 10 === 0) {
+            console.log('[MIC] Recorded', chunks.length, 'chunks (worklet)');
+          }
+        };
+        source.connect(workletNode);
+        workletNode.connect(audioContext.destination);
+        console.log('[MIC] Using AudioWorkletNode');
+        cleanup = () => {
+          workletNode.port.postMessage('stop');
+          workletNode.disconnect();
+        };
+      } catch {
+        console.warn('[MIC] AudioWorklet unavailable, falling back to ScriptProcessor');
+        cleanup = setupScriptProcessor(audioContext, source, chunks);
+      }
 
-      source.connect(processor);
-      processor.connect(audioContext.destination);
       console.log('[MIC] Recording started, will stop after', durationMs, 'ms');
       setIsRecording(true);
 
       return new Promise((resolve) => {
         setTimeout(() => {
           console.log('[MIC] Recording finished, total chunks:', chunks.length);
-          processor.disconnect();
+          const actualSampleRate = audioContext.sampleRate;
+          cleanup();
           source.disconnect();
           if (!existingStream) stream.getTracks().forEach((t) => t.stop());
-          audioContext.close();
+          if (ownsContext) audioContext.close();
           setIsRecording(false);
 
-          const wavBlob = encodeWAV(chunks, 44100);
-          console.log('[MIC] WAV encoded, size:', wavBlob.size, 'bytes');
+          const wavBlob = encodeWAV(chunks, actualSampleRate);
+          console.log('[MIC] WAV encoded, size:', wavBlob.size, 'bytes, sampleRate:', actualSampleRate);
           resolve(wavBlob);
         }, durationMs);
       });
@@ -70,6 +101,29 @@ export function useAudioRecorder() {
   }
 
   return { startRecording, isRecording };
+}
+
+/**
+ * Fallback: deprecated ScriptProcessorNode for browsers without AudioWorklet
+ */
+function setupScriptProcessor(audioContext, source, chunks) {
+  const processor = audioContext.createScriptProcessor(4096, 1, 1);
+
+  processor.onaudioprocess = (e) => {
+    const data = e.inputBuffer.getChannelData(0);
+    chunks.push(new Float32Array(data));
+    if (chunks.length % 10 === 0) {
+      console.log('[MIC] Recorded', chunks.length, 'chunks (ScriptProcessor)');
+    }
+  };
+
+  source.connect(processor);
+  processor.connect(audioContext.destination);
+  console.log('[MIC] Using ScriptProcessorNode (fallback)');
+
+  return () => {
+    processor.disconnect();
+  };
 }
 
 /**

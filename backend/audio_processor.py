@@ -6,6 +6,8 @@ import numpy as np
 import librosa
 import io
 
+from config import CONFIG
+
 
 class AudioProcessor:
     """Handles raw audio → pitch contour extraction"""
@@ -42,7 +44,7 @@ class AudioProcessor:
         )
 
         voiced_ratio = np.sum(~np.isnan(f0)) / len(f0)
-        median_hz = float(np.nanmedian(f0)) if voiced_ratio > 0.1 else 0.0
+        median_hz = float(np.nanmedian(f0)) if voiced_ratio > CONFIG["min_voiced_ratio"] else 0.0
 
         if median_hz > 0:
             contour_semitones = 12 * np.log2(f0 / median_hz)
