@@ -15,6 +15,15 @@ export const GameState = {
   LOSE_SCREEN: 'lose_screen',
 };
 
+function failureKey(reason) {
+  if (!reason) return null;
+  if (reason.includes('Not enough sound')) return 'no_voice';
+  if (reason.includes('too short')) return 'too_short';
+  if (reason.includes("didn't sound like")) return 'bad_contour';
+  if (reason.includes('Not high enough')) return 'low_pitch';
+  return 'unknown';
+}
+
 export function useGameSession() {
   const [state, setState] = useState(GameState.IDLE);
   const [sessionId, setSessionId] = useState(null);
@@ -76,6 +85,9 @@ export function useGameSession() {
           round: roundRef.current,
           passed: analysis.passed,
           performance_score: analysis.performance_score,
+          failure: failureKey(analysis.failure_reason),
+          contour_match: analysis.contour_match ?? null,
+          pitch_match: analysis.pitch_match ?? null,
         });
 
         if (analysis.game_over) {
