@@ -15,9 +15,9 @@ CONFIG = {
     # Player must be at or above this pitch to pass
 
     # UWU Detection thresholds
-    "dtw_threshold": 5.5,            # DTW normalization ceiling (lower = stricter shape match)
+    "dtw_threshold": 8.0,            # DTW normalization ceiling (lower = stricter shape match)
     "min_voiced_ratio": 0.05,         # Minimum fraction of frames that must have detected pitch
-    "pitch_tolerance": 5.0,          # Max semitones BELOW target to allow (0 = must be higher or equal)
+    "pitch_tolerance": 8.0,          # Max semitones BELOW target to allow (0 = must be higher or equal)
 
     # Sakoe-Chiba DTW window — limits how much the warping path can deviate from the diagonal.
     # Expressed in frames (1 frame = hop_length / sample_rate seconds ≈ 11.6 ms at defaults).
