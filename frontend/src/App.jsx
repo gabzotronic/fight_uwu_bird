@@ -20,6 +20,14 @@ function App() {
     // (i.e. the browser dialog actually appeared)
     const messageTimer = setTimeout(() => setMicState('requesting'), 200);
 
+    // Create AudioContext synchronously in the tap handler BEFORE any await.
+    // iOS WebKit considers everything after an await as "automatically scripted"
+    // and will refuse to unlock a suspended AudioContext.
+    const ctx = new (window.AudioContext || window.webkitAudioContext)({
+      sampleRate: 44100,
+    });
+    if (ctx.state === 'suspended') ctx.resume();
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -28,12 +36,6 @@ function App() {
           sampleRate: 44100,
         },
       });
-
-      // Create AudioContext during the user tap — iOS Safari requires this
-      const ctx = new (window.AudioContext || window.webkitAudioContext)({
-        sampleRate: 44100,
-      });
-      if (ctx.state === 'suspended') await ctx.resume();
 
       // Pre-register the AudioWorklet module (if supported)
       if (ctx.audioWorklet) {
@@ -52,6 +54,7 @@ function App() {
     } catch {
       clearTimeout(messageTimer);
       setMicState('denied');
+      ctx.close();
     }
   };
 
