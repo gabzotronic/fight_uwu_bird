@@ -28,7 +28,7 @@ CONFIG = {
 
     # Recording
     "recording_duration_sec": 3,   # How long to record player input
-    "silence_threshold_db": -40,     # Below this = silence
+    "silence_threshold_db": -35,     # Below this = silence
 
     # Audio
     "preroll_silence_sec": 0.4,      # Silence prepended to each bird call (wakes Bluetooth/sleeping audio devices)

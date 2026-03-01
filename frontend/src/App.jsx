@@ -34,7 +34,7 @@ function App() {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
-          noiseSuppression: false,
+          noiseSuppression: true,
           sampleRate: 44100,
         },
       });
