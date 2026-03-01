@@ -78,7 +78,7 @@ export default function ResultScreen({ result, score, sessionId, scoreToken, mes
           )}
         </div>
 
-        <p className="result-message">{message}</p>
+        {message && <p className="result-message">{message}</p>}
 
         {/* Current round pitch visualization */}
         {analysis && <PitchVisualizer analysis={analysis} />}

@@ -4,6 +4,10 @@
   box-sizing: border-box;
 }
 
+#root {
+  width: 100%;
+}
+
 :root {
   --primary-color: #1a1a2e;
   --secondary-color: #16213e;
@@ -17,6 +21,7 @@
 body {
   background: #f7f7f7;
   min-height: 100vh;
+  padding: 0 !important;
 }
 
 .app {
@@ -424,7 +429,7 @@ body {
   font-size: 1.4rem;
   font-weight: 700;
   letter-spacing: 2px;
-  margin: 0 0 16px;
+  margin: 0;
 }
 
 .result-message {
@@ -655,6 +660,7 @@ body {
   align-items: center;
   padding: 6px 10px;
   font-size: 0.8rem;
+  gap: 8px;
 }
 
 .leaderboard__entry--own {
@@ -662,9 +668,12 @@ body {
 }
 
 .leaderboard__rank {
-  width: 28px;
+  min-width: 24px;
+  width: 24px;
   font-weight: bold;
   color: #181010;
+  text-align: right;
+  flex-shrink: 0;
 }
 
 .leaderboard__name {
@@ -678,6 +687,8 @@ body {
   font-weight: bold;
   color: #181010;
   letter-spacing: 1px;
+  text-align: right;
+  flex-shrink: 0;
 }
 
 .leaderboard__separator {
@@ -691,7 +702,13 @@ body {
 /* Responsive */
 @media (max-width: 600px) {
   .app {
-    padding: 8px;
+    padding: 4px;
+    width: 100%;
+  }
+
+  .container {
+    max-width: 100%;
+    width: 100%;
   }
 
   .title {
@@ -719,20 +736,77 @@ body {
   }
 
   .result-screen {
-    padding: 30px 20px;
+    padding: 12px 10px;
+  }
+
+  .result-content {
+    gap: 10px;
   }
 
   .result-title {
-    font-size: 2.5rem;
+    font-size: 2rem;
+    margin: 8px 0;
+  }
+
+  .result-score {
+    font-size: 1.1rem;
+    margin: 0 0 4px;
+  }
+
+  .result-message {
+    font-size: 1.2rem;
+    margin-top: 0;
   }
 
   .result-stats {
     flex-direction: column;
+    padding: 10px;
+    gap: 8px;
   }
 
   .stat {
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
     align-items: flex-start;
+  }
+
+  .leaderboard-submit {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .leaderboard-input {
+    font-size: 0.8rem;
+    padding: 6px 8px;
+    width: 120px;
+  }
+
+  .leaderboard {
+    padding: 8px 6px;
+    width: calc(100% + 20px);
+    margin-left: -10px;
+  }
+
+  .leaderboard__title {
+    font-size: 0.8rem;
+    margin-bottom: 6px;
+  }
+
+  .leaderboard__table {
+    gap: 2px;
+  }
+
+  .leaderboard__entry {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+  }
+
+  .leaderboard__rank {
+    width: 22px;
+  }
+
+  .play-again-button {
+    padding: 8px 10px;
+    font-size: 0.8rem;
   }
 }
