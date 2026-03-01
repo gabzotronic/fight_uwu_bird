@@ -8,7 +8,7 @@ Add a persistent global leaderboard to the results screen. Players can submit th
 
 ## Requirements
 
-- Player can enter a name (max 10 characters) on the results screen
+- Player can enter a name (max 8 characters) on the results screen
 - Score is submitted with the name to the backend
 - Leaderboard shows top 8 all-time scores (all players, all sessions)
 - Leaderboard persists across server restarts and redeployments
@@ -150,7 +150,7 @@ Submits a new score entry.
 ```
 
 **Validation:**
-- `name`: required, 1–10 characters, stripped of leading/trailing whitespace
+- `name`: required, 1–8 characters, stripped of leading/trailing whitespace
 - `score`: required, integer ≥ 0
 
 **Response:** same shape as `GET /api/leaderboard` (returns updated top 8 immediately)

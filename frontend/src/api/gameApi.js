@@ -42,3 +42,22 @@ export async function healthCheck() {
   if (!resp.ok) throw new Error('Health check failed');
   return resp.json();
 }
+
+export async function getLeaderboard() {
+  const resp = await fetch(`${API_BASE}/api/leaderboard`);
+  if (!resp.ok) throw new Error('Failed to fetch leaderboard');
+  return resp.json();
+}
+
+export async function submitScore(name, score, sessionId, token) {
+  const resp = await fetch(`${API_BASE}/api/leaderboard`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, score, session_id: sessionId, token }),
+  });
+  if (!resp.ok) {
+    const data = await resp.json().catch(() => ({}));
+    throw new Error(data.detail || 'Failed to submit score');
+  }
+  return resp.json();
+}

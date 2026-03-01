@@ -6,6 +6,9 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional
 import uuid
+import hmac
+import hashlib
+import os
 from datetime import datetime, timedelta
 
 
@@ -28,6 +31,11 @@ class GameSession:
     created_at: datetime = field(default_factory=datetime.utcnow)
     round_results: list = field(default_factory=list)
     round_contours: list = field(default_factory=list)  # Store contours for each round
+    total_score: int = 0
+    score_token: Optional[str] = None
+
+
+_SCORE_SECRET = os.environ.get("SCORE_SECRET", uuid.uuid4().hex)
 
 
 class GameManager:
@@ -45,14 +53,16 @@ class GameManager:
     def get_session(self, session_id: str) -> Optional[GameSession]:
         return self.sessions.get(session_id)
 
-    def advance_round(self, session_id: str, passed: bool) -> GameSession:
+    def advance_round(self, session_id: str, passed: bool, performance_score: int = 0) -> GameSession:
         session = self.sessions[session_id]
         session.round_results.append(passed)
 
         if passed:
+            session.total_score += performance_score
             # Player cleared this round — advance
             if session.current_round >= session.max_rounds:
                 session.status = GameStatus.GAME_WON
+                session.score_token = self._sign_score(session_id, session.total_score)
             else:
                 session.current_round += 1
                 session.status = GameStatus.WAITING_FOR_PLAYER
@@ -61,11 +71,26 @@ class GameManager:
             session.tries_left -= 1
             if session.tries_left <= 0:
                 session.status = GameStatus.GAME_LOST
+                session.score_token = self._sign_score(session_id, session.total_score)
             else:
                 session.status = GameStatus.WAITING_FOR_PLAYER
                 # current_round stays the same — player retries
 
         return session
+
+    @staticmethod
+    def _sign_score(session_id: str, score: int) -> str:
+        msg = f"{session_id}:{score}".encode()
+        return hmac.new(_SCORE_SECRET.encode(), msg, hashlib.sha256).hexdigest()
+
+    @staticmethod
+    def verify_token(session_id: str, score: int, token: str) -> bool:
+        expected = hmac.new(
+            _SCORE_SECRET.encode(),
+            f"{session_id}:{score}".encode(),
+            hashlib.sha256,
+        ).hexdigest()
+        return hmac.compare_digest(expected, token)
 
     def _cleanup_old_sessions(self):
         """Remove sessions older than 1 hour."""

@@ -8,6 +8,8 @@ function App() {
   const [gameStarted, setGameStarted] = useState(false);
   const [gameResult, setGameResult] = useState(null);
   const [gameScore, setGameScore] = useState(0);
+  const [gameSessionId, setGameSessionId] = useState(null);
+  const [scoreToken, setScoreToken] = useState(null);
   const [micState, setMicState] = useState('idle'); // 'idle' | 'requesting' | 'denied'
   const [micStream, setMicStream] = useState(null);
   const [audioContext, setAudioContext] = useState(null);
@@ -58,7 +60,7 @@ function App() {
     }
   };
 
-  const handleGameEnd = (result, score) => {
+  const handleGameEnd = (result, score, sessionId, token) => {
     if (micStream) {
       micStream.getTracks().forEach((t) => t.stop());
       setMicStream(null);
@@ -69,6 +71,8 @@ function App() {
     }
     setGameResult(result);
     setGameScore(score);
+    setGameSessionId(sessionId);
+    setScoreToken(token);
     setGameStarted(false);
   };
 
@@ -101,6 +105,8 @@ function App() {
           <ResultScreen
             result={gameResult}
             score={gameScore}
+            sessionId={gameSessionId}
+            scoreToken={scoreToken}
             onPlayAgain={handleFightClick}
           />
         </div>

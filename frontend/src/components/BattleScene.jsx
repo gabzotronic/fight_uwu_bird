@@ -39,6 +39,7 @@ export default function BattleScene({
   const [birdHpDisplay, setBirdHpDisplay] = useState(100);
   const [totalScore, setTotalScore] = useState(0);
   const totalScoreRef = useRef(0);
+  const scoreTokenRef = useRef(null);
 
   // Animation states
   const [playerAnimState, setPlayerAnimState] = useState('hidden');
@@ -138,7 +139,13 @@ export default function BattleScene({
         const result = await submitAudio(playerAudio);
         if (!result) throw new Error('No analysis result returned');
 
-        if (result.passed) {
+        if (result.score_token) {
+          scoreTokenRef.current = result.score_token;
+        }
+        if (result.total_score != null) {
+          totalScoreRef.current = result.total_score;
+          setTotalScore(result.total_score);
+        } else if (result.passed) {
           totalScoreRef.current += (result.performance_score ?? 0);
           setTotalScore(totalScoreRef.current);
         }
@@ -182,7 +189,7 @@ export default function BattleScene({
         setBirdAnimState('video');
         await waitForBirdVideoEnd();
         setDialogue('YOU won the battle!');
-        if (onGameEnd) onGameEnd('win', totalScoreRef.current);
+        if (onGameEnd) onGameEnd('win', totalScoreRef.current, sid, scoreTokenRef.current);
       } else {
         // LOSE
         setPhase('lose');
@@ -193,7 +200,7 @@ export default function BattleScene({
         setBirdAnimState('video');
         await waitForBirdVideoEnd();
         setDialogue('YOU blacked out!');
-        if (onGameEnd) onGameEnd('lose', totalScoreRef.current);
+        if (onGameEnd) onGameEnd('lose', totalScoreRef.current, sid, scoreTokenRef.current);
       }
     } catch (err) {
       console.error('Battle error:', err);

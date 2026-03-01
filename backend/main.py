@@ -7,6 +7,7 @@ import os
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
+from pydantic import BaseModel, Field
 import numpy as np
 from pathlib import Path
 
@@ -15,6 +16,8 @@ from audio_processor import AudioProcessor
 from uwu_detector import UWUDetector
 from pitch_shifter import PitchShifter
 from config import CONFIG
+import leaderboard
+from better_profanity import profanity
 
 app = FastAPI(title="FIGHT UWU BIRD API")
 
@@ -146,6 +149,9 @@ def startup():
 
     # 4. Initialize detector
     uwu_detector = UWUDetector(template, CONFIG)
+
+    # 5. Initialize leaderboard
+    leaderboard.init_db()
 
     print(f"[OK] Loaded base call. Median pitch: {CONFIG['base_pitch_hz']:.1f} Hz")
     print(f"[OK] Pre-generated {len(CONFIG['round_shifts'])} pitch variants")
@@ -289,7 +295,7 @@ async def analyze_player_audio(session_id: str, audio: UploadFile = File(...), i
     })
 
     # Advance game state
-    session = game_manager.advance_round(session_id, analysis["passed"])
+    session = game_manager.advance_round(session_id, analysis["passed"], int(analysis["performance_score"]))
 
     # Build response
     result = None
@@ -326,6 +332,8 @@ async def analyze_player_audio(session_id: str, audio: UploadFile = File(...), i
         "game_over": bool(result is not None),
         "result": result,
         "message": message,
+        "score_token": session.score_token,
+        "total_score": session.total_score,
         # Plotly chart traces for ContentFrame (merged Hz corridor view)
         "pitch_chart": pitch_chart,
         # Visualization data - current round
@@ -340,3 +348,34 @@ async def analyze_player_audio(session_id: str, audio: UploadFile = File(...), i
         # All rounds' contours for persistent visualization
         "all_rounds_visualization": session.round_contours,
     }
+
+
+# --- Leaderboard ---
+
+class LeaderboardSubmission(BaseModel):
+    name: str = Field(..., min_length=1, max_length=8)
+    score: int = Field(..., ge=0, le=30000)
+    session_id: str
+    token: str
+
+
+@app.get("/api/leaderboard")
+def get_leaderboard():
+    return {"entries": leaderboard.get_top(8)}
+
+
+@app.post("/api/leaderboard")
+def post_leaderboard(body: LeaderboardSubmission):
+    # Verify score token
+    if not GameManager.verify_token(body.session_id, body.score, body.token):
+        raise HTTPException(403, "Invalid score token")
+
+    clean_name = body.name.strip().upper()
+
+    # Profanity check
+    if profanity.contains_profanity(clean_name):
+        raise HTTPException(400, "Name contains inappropriate language")
+
+    leaderboard.insert_entry(clean_name, body.score)
+    rank = leaderboard.get_rank(clean_name, body.score)
+    return {"entries": leaderboard.get_top(8), "player_rank": rank}
