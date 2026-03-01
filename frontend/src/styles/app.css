@@ -691,6 +691,22 @@ body {
   flex-shrink: 0;
 }
 
+.leaderboard-toggle {
+  appearance: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.65rem;
+  padding: 0.5em 1em;
+  margin-top: 16px;
+  letter-spacing: 1px;
+  color: #95a5a6;
+}
+
+.leaderboard--landing {
+  margin-top: 16px;
+}
+
 .leaderboard__separator {
   text-align: center;
   color: #999;

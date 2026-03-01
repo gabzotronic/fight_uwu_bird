@@ -2,8 +2,23 @@
  * FightButton - Main entry point for the game
  */
 
+import { useState, useEffect } from 'react';
+import { getLeaderboard } from '../api/gameApi';
+
 export default function FightButton({ onClick, gameResult, micState = 'idle' }) {
   const isRequesting = micState === 'requesting';
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [entries, setEntries] = useState([]);
+
+  useEffect(() => {
+    if (showLeaderboard && entries.length === 0) {
+      getLeaderboard()
+        .then((data) => setEntries(data.entries || []))
+        .catch(() => {});
+    }
+  }, [showLeaderboard]);
+
+  const showDefault = !micState || micState === 'idle';
 
   return (
     <div className="fight-button-container">
@@ -19,6 +34,21 @@ export default function FightButton({ onClick, gameResult, micState = 'idle' }) 
         <p className={`result-message result-message--${gameResult}`}>
           {gameResult === 'win' ? 'YOU WIN' : 'YOU LOSE'}
         </p>
+      ) : showLeaderboard ? (
+        entries.length > 0 && (
+          <div className="framed neutral leaderboard leaderboard--landing">
+            <h3 className="leaderboard__title">LEADERBOARD</h3>
+            <div className="leaderboard__table">
+              {entries.map((entry, i) => (
+                <div key={i} className="leaderboard__entry">
+                  <span className="leaderboard__rank">{i + 1}</span>
+                  <span className="leaderboard__name">{entry.name}</span>
+                  <span className="leaderboard__score">{entry.score.toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
       ) : (
         <>
           <p className="subtitle">
@@ -29,6 +59,14 @@ export default function FightButton({ onClick, gameResult, micState = 'idle' }) 
             Win all 3 rounds to silence the bird!
           </p>
         </>
+      )}
+      {showDefault && (
+        <button
+          className="leaderboard-toggle"
+          onClick={() => setShowLeaderboard(!showLeaderboard)}
+        >
+          {showLeaderboard ? 'HIDE LEADERBOARD' : 'SHOW LEADERBOARD'}
+        </button>
       )}
       <footer className="fight-footer">
         <p>Made in 🇸🇬 with ❤️</p>
